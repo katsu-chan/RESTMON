@@ -178,6 +178,7 @@ bool handleSettingsIo(String q)
     send405();
     break;
   }
+  return 0;
 }
 
 int getIo(int pin)
@@ -200,6 +201,7 @@ bool setIo(int pin, String val)
     return false;
   pinMode(pin, valsi);
   pinModes[pin] = valsi;
+  return true;
 }
 
 int stof(String val)
