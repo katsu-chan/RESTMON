@@ -143,7 +143,7 @@ void handleData()
   {
     digital = true;
   }
-  else if (mode != "digital")
+  else if (mode != "analog")
   {
     send400args("mode", mode);
   }
@@ -317,7 +317,7 @@ bool send400ifnull(String name, String value)
 
 void send400args(String name, String value)
 {
-  server.send(405, "text/plain", "Bad Request\n\n" + name + "= \"" + value + "\"\n"); // Bad Request \n\n q = "example"
+  server.send(405, "text/plain", "Bad Request\n\n" + name + " = \"" + value + "\"\n"); // Bad Request \n\n q = "example"
 }
 
 void send405()
