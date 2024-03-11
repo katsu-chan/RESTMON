@@ -5,17 +5,19 @@
 #include <WebServer.h>
 #include <ESPmDNS.h>
 
-#include "creds.cpp"
+#include "creds.h"
 
 WebServer server(80);
 
 const int led = 13;
 
-int pinModes[256]; //max 256 pins
+int pinModes[256]; // max 256 pins
 
 void handleRoot();
 void handleNotFound();
 void handleData();
+void handleDataGet(int pini, bool digital);
+void handleDataPut(int pini, bool digital);
 void handleSettings();
 bool handleSettingsIo(String q);
 int getIo(int pin);
@@ -123,10 +125,87 @@ void handleNotFound()
 
 void handleData()
 {
-  //TODO: implement this
+  String pin = server.arg("pin");
+  if (send400ifnull("pin", pin))
+    return;
+
+  int pini = pin.toInt();
+  if (pini == 0)
+  {
+    send400args("pin", pin);
+    return;
+  }
+
+  String mode = server.arg("mode");
+  bool digital = false;
+
+  if (mode == "digital")
+  {
+    digital = true;
+  }
+  else if (mode != "digital")
+  {
+    send400args("mode", mode);
+  }
+
+  switch (server.method())
+  {
+  case HTTP_GET:
+    handleDataGet(pini, digital);
+    break;
+  case HTTP_PUT:
+    handleDataPut(pini, digital);
+    break;
+  default:
+    send405();
+    break;
+  }
+}
+
+void handleDataGet(int pini, bool digital) {
+  if (digital) {
+    server.send(501, "text/plain", "Not Implemented\n\nanalog works tho");
+  }
+  String len = server.arg("len");
+  if (send400ifnull("len", len))
+    return;
+
+  int leni = len.toInt();
+  
+  if (leni == 0)
+  {
+    send400args("len", len);
+    return;
+  }
+
+  String resp = "";
+
+  for (size_t i = 0; i < leni; i++)
+  {
+    resp += String(analogRead(pini), DEC) + ",";
+  }
+
+  server.send(200, "audio/csv", resp.substring(0, resp.length() - 1));
+}
+
+void handleDataPut(int pini, bool digital) {
+  // TODO: implement this
   server.send(501, "text/plain", "Not Implemented");
 
-  //server.send(200, "text/plain", "154 154 154 154 154 154 154 1350 124 634");
+  // TODO: add arg for form of data, raw, frequency, fft
+
+  /*
+  String val = server.arg("val");
+  if (send400ifnull("val", val))
+    return;
+
+  int vali = stof(val);
+  if (vali == 0)
+  {
+    send400args("val", val);
+    return;
+  }
+  */
 }
 
 void handleSettings()
@@ -136,13 +215,14 @@ void handleSettings()
   if (send400ifnull("q", q))
     return;
 
-  if(handleSettingsIo(q)) return; // if (q != io) return
-
+  if (handleSettingsIo(q))
+    return; // if (q != io) return
 }
 
 bool handleSettingsIo(String q)
 {
-  if (q != "io" && q != "IO" && q!= "Io" && q!= "iO") {
+  if (q != "io" && q != "IO" && q != "Io" && q != "iO")
+  {
     return 1;
   }
   String pin = server.arg("pin");
