@@ -7,6 +7,8 @@
 
 #include "creds.h"
 
+//TODO: RESTify
+
 WebServer server(80);
 
 const int led = 13;
